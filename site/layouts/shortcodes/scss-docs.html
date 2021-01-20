@@ -14,21 +14,20 @@
 
 {{- /* If any parameters are missing, print an error and exit */ -}}
 {{- if or (not $name) (not $file) -}}
-  {{- errorf "%q: Missing required parameters! Got: name=%q file=%q! %s" .Name $name $file $.Position -}}
+  {{- errorf "%s: %q: Missing required parameters! Got: name=%q file=%q!" .Position .Name $name $file -}}
 {{- else -}}
-  {{- $start := printf "// scss-docs-start %s\n" $name -}}
-  {{- $end := printf "\n// scss-docs-end %s" $name -}}
-  {{- $regex := printf "%s(.|\n)*%s" $start $end -}}
+  {{- $capture_start := printf "// scss-docs-start %s\n" $name -}}
+  {{- $capture_end := printf "\n// scss-docs-end %s" $name -}}
+  {{- $regex := printf "%s(.|\n)*%s" $capture_start $capture_end -}}
 
-  {{- $css := readFile $file -}}
-  {{- $match := findRE $regex $css 1 -}}
+  {{- $match := findRE $regex (readFile $file) 1 -}}
 
   {{- if (eq (len $match) 0) -}}
-    {{- errorf "%q: Got no matches for name=%q in file=%q! %s" .Name $name $file $.Position -}}
+    {{- errorf "%s: %q: Got no matches for name=%q in file=%q!" .Position .Name $name $file -}}
   {{- end -}}
 
-  {{- $remove_start := replace (index $match 0) $start "" -}}
-  {{- $result := replace $remove_start $end "" -}}
+  {{- $remove_start := replace (index $match 0) $capture_start "" -}}
+  {{- $result := replace $remove_start $capture_end "" -}}
 
   {{- if (ne $strip_default "false") -}}
     {{- $result = replace $result " !default" "" -}}
